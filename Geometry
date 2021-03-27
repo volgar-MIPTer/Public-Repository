@@ -1,0 +1,1936 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <initializer_list>
+
+const long double EPSILON = 1e-6;
+
+bool are_equal(long double a, long double b){
+    return abs(a - b) < EPSILON;
+}
+
+void print(long double a){
+    std::cout << a << '\n';
+}
+
+void print(std::vector <long double> &array){
+    for (size_t i = 0; i < array.size(); ++i){
+        std::cout << array[i] << " " ;
+    }
+    std::cout << "" << '\n';
+}
+
+void print(std::vector <std::pair<long double, long double>> &array){
+    for (size_t i = 0; i < array.size(); ++i){
+        std::cout << array[i].first << " " << array[i].second << " " ;
+    }
+    std::cout << "" << '\n';
+}
+
+
+long double sqr(long double a) {
+    return a * a;
+}
+
+class Vector;
+
+class Point{
+public:
+    long double x = 0;
+    long double y = 0;
+    Point();
+    Point(long double x1, long double y1);
+    Point(const Point& a);
+    Point(Vector a);
+    Point(Point A, Vector AB);
+    ~Point() = default;
+};
+
+Point null_Point(0, 0);
+
+void print(std::vector <Point> array, short int space = 1, bool next_string = true){
+    if (space == 0){
+        for (size_t i = 0; i < array.size(); ++i){
+            std::cout << array[i].x << " " << array[i].y;
+        }
+    }
+    else if (space == 1){
+        for (size_t i = 0; i < array.size(); ++i){
+            std::cout << array[i].x << " " << array[i].y << " ";
+        }
+    }
+    else {
+        for (size_t i = 0; i < array.size(); ++i){
+            std::cout << array[i].x << " " << array[i].y << '\n';
+        }
+    }
+    if (next_string) {
+        std::cout << "" << '\n';
+    }
+}
+
+Point::Point():x(0), y(0) {}
+
+Point::Point(long double x1, long double y1): x(x1), y(y1) {}
+
+Point::Point(const Point& a): x(a.x), y(a.y) {}
+
+void print(Point &a){
+    std::cout << a.x << " " << a.y << '\n';
+    return;
+}
+
+Point between(Point A, Point B, long double k){
+    Point C ((A.x + k * B.x)/ (1 + k), (A.y + k * B.y)/ (1 + k));
+    return C;
+}
+
+void print(std::pair<Point, Point> p){
+    print(p.first);
+    print(p.second);
+}
+
+bool operator == (const Point &a, const Point &b){
+    return (are_equal(a.x, b.x) && are_equal(a.y,  b.y));
+}
+
+bool operator != (const Point &a, const Point &b){
+    return !(a == b);
+}
+
+long double distance12(Point &A, Point &B){ //
+    return sqrt(sqr(A.x - B.x) + sqr(A.y - B.y));
+}
+
+class Vector;
+
+class Line{
+public:
+    long double tg = 0;
+    long double shift = 0;
+    bool oy = false;
+    Line();
+    Line(long double tg1, long double shift1, bool oy1 = false);
+    Line(const Point &a, const Point &b);
+    Line(const Point &a, long double tgt1,  bool oy1 = false);
+    Line(const Line& l);
+    Line(Vector a, Point P);
+    bool containsPoint(Point p);
+    ~Line() = default;
+};
+
+void print(Line l){
+    std::cout << l.tg << " " << l.shift  << " "  << l.oy << '\n';
+}
+
+void print(std::pair<Line, Line> p){
+    print(p.first);
+    print(p.second);
+}
+
+Line::Line(): tg(0), shift(0), oy(false) {}
+
+Line::Line(long double tg1, long double shift1, bool oy1 ): tg(tg1), shift(shift1),  oy(oy1) {} //from parameters
+
+Line::Line(const Point &a, const Point &b){ //from Points
+    long double xa = a.x;
+    long double xb = b.x;
+    long double ya = a.y;
+    long double yb = b.y;
+    if (are_equal(xa, xb)){
+        shift = xa;
+        tg = 0;
+        oy = true;
+    }
+    else{
+        tg = (ya - yb) / (xa - xb);
+        shift = (xa * yb - xb * ya) / (xa - xb);
+        oy = false;
+    }
+}
+
+Line::Line(const Point &a, long double tg1, bool oy1): tg(tg1), shift(a.y - tg1 * a.x), oy(oy1) {}
+
+Line::Line(const Line& l): tg(l.tg), shift(l.shift),  oy(l.oy) {}
+
+bool operator == (const Line& a, const Line& b){
+    return (are_equal(a.shift, b.shift) && are_equal(a.tg, b.tg) && a.oy == b.oy) ;
+}
+
+bool operator != (const Line& a, const Line& b){
+    return !(a == b) ;
+}
+
+
+class Vector{
+public:
+    long double x = 0;
+    long double y = 0;
+    Vector();
+    Vector(Point a);
+    Vector(Line a);
+    Vector(Point a, Point b);
+    Vector(long double x1, long double x2);
+    Vector(Vector a, long double len);
+    ~Vector() = default;
+    long double length();
+    Vector operator +=(Vector another);
+    Vector operator -=(Vector another);
+    const Vector operator -();
+    Vector operator *= (long double k);
+};
+
+void print(Vector a){
+    std::cout << a.x << " " << a.y << '\n';
+}
+
+long double abs(Vector a){
+    return sqrt(sqr(a.x) + sqr(a.y));
+}
+
+Vector::Vector() : x(0), y(0) {}
+
+Vector::Vector(Point a): x(a.x), y(a.y) {};
+
+Vector::Vector(Line a) { //from Line
+    if (are_equal(a.tg, 0)){
+        if (a.oy){
+            x = 0;
+            y = 1;
+        }
+        else{
+            x = 1;
+            y = 0;
+        }
+    }
+    else{
+        x = 1;
+        y = a.tg * x;
+    }
+}
+
+Vector::Vector(Point a, Point b) : x(b.x - a.x), y(b.y - a.y) {}
+
+Line::Line(Vector a, Point P){
+    if (a.x != 0){
+        tg = a.y / a.x;
+        shift = P.y - (tg * P.x);
+        oy = false;
+    }
+    else{
+        tg = 0;
+        shift = P.x;
+        oy = true;
+    }
+}
+
+
+Vector::Vector(long double x1, long double x2){
+    *this = Vector(Point(0, 0), Point(x1, x2));
+}
+
+Vector operator * (Vector a, long double k){
+    Vector res(a);
+    res *= k;
+    return res;
+}
+
+Vector operator * (long double k, Vector a){
+    Vector res = a * k;
+    return res;
+}
+
+Vector::Vector(Vector a, long double len){
+    *this = a * (1 / abs(a)) * len;
+}
+
+Point::Point(Vector a): x(a.x), y(a.y) {}
+
+Point::Point(Point A, Vector AB): x(AB.x + A.x), y(AB.y + A.y) {}
+
+long double Vector::length(){
+    Point A(x, y);
+    Point B(0, 0);
+    return distance12(A, B);
+}
+
+bool operator ==(Vector a, Vector b){
+    return (are_equal(a.x, b.x) && are_equal(a.y, b.y));
+}
+
+bool operator !=(Vector a, Vector b){
+    return !(a == b);
+}
+
+Vector Vector::operator+=(Vector another) {
+    x += another.x;
+    y += another.y;
+    return *this;
+}
+
+Vector operator +(Vector a, Vector b){
+    a += b;
+    return a;
+}
+
+const Vector Vector::operator -() {
+    Vector copy(*this);
+    copy.x = -x;
+    copy.y = -y;
+    return copy;
+}
+
+Vector Vector::operator-=(Vector another) {
+    *this += -another;
+    return *this;
+}
+
+Vector operator -(Vector a, Vector b){
+    a -= b;
+    return a;
+}
+
+long double operator *(Vector a, Vector b){
+    return (a.x * b.x) + (a.y * b.y);
+}
+
+Vector Vector::operator *=(long double k){
+    Vector res(*this);
+    res.x *= k;
+    res.y *= k;
+    *this = res;
+    return *this;
+}
+
+long double operator / (Vector a, Vector b){
+    return (a.x * b.y) - (a.y * b.x);
+}
+
+long double cos_angle(Vector a, Vector b){
+    return (a * b) / (a.length() * b.length());
+}
+
+bool is_positive_pair(Vector a, Vector b){
+    return (a.x * b.y - a.y * b.x >= 0);
+}
+
+long double sin_angle(Vector a, Vector b){
+    long double cs = cos_angle(a, b);
+    long double res = sqrt(1 - sqr(cs));
+    if (is_positive_pair(a, b)){
+        return res;
+    }
+    else{
+        return -res;
+    }
+}
+
+bool parall(Vector a, Vector b){
+    return (are_equal(a * b, a.length() * b.length() )|| are_equal(a * b, -a.length() * b.length()));
+}
+
+bool parall(Line a, Line b){
+    Vector a1(a);
+    Vector b1(b);
+    return (parall(a1, b1));
+}
+
+Point* intersection(Line a, Line b){
+    if (parall(a, b)){
+        return nullptr;
+    }
+    else{
+        long double k1 = a.tg;
+        long double k2 = b.tg;
+        long double b1 = a.shift;
+        long double b2 = b.shift;
+        long double x;
+        long double y;
+        if (k1 != k2) {
+            if (a.oy){
+                x = a.shift;
+                y = k2 * x + b2;
+            }
+            else if (b.oy){
+                x = b.shift;
+                y = k1 * x + b1;
+            }
+            else {
+                x = (b1 - b2) / (k2 - k1);
+                y = (k2 * b1 - k1 * b2) / (k2 - k1);
+            }
+        }
+        else {
+            if (a.oy) {
+                x = a.shift;
+                y = b.shift;
+            } else {
+                x = b.shift;
+                y = a.shift;
+            }
+        }
+        Point *res = new Point(x, y);
+        return res;
+    }
+}
+
+bool co_derect(Vector a, Vector b){
+    return (parall(a, b) && (a.x * b.x >= 0) && (a.y * b.y >= 0));
+}
+
+bool normal(Vector a, Vector b){
+    return are_equal(a * b, 0);
+}
+
+long double x_coord(Line a, Point X){
+    long double k = a.tg;
+    long double b = a.shift;
+    long double y = X.y;
+    if (k != 0) {
+        return (y - b) / k;
+    }
+    else {
+        if (!a.oy) {
+            throw 'a';
+        }
+        else {
+            throw 1;
+        }
+    }
+}
+
+long double y_coord(Line a, Point X){
+    long double k = a.tg;
+    long double b = a.shift;
+    long double x = X.x;
+    if (a.oy) {
+        throw 1;
+    }
+    else{
+        return k * x + b;
+    }
+}
+
+std::pair <Point*, Point* > projections_on_the_Line(Line a, Point X){
+    std::pair <Point*, Point*> res;
+    if (are_equal(a.tg, 0)){
+        if (a.oy){
+            Point* fixed_x = new Point(X);
+            if (are_equal(X.x, a.shift)){
+                res.first = fixed_x;
+            }
+            else{
+                fixed_x = nullptr;
+                res.first = fixed_x;
+            }
+            Point* fixed_y = new Point(a.shift, X.y);
+            res.second = fixed_y;
+        }
+        else{
+            Point* fixed_y = new Point(X);
+            if (are_equal(X.y, a.shift)){
+                res.second = fixed_y;
+            }
+            else{
+                fixed_y = nullptr;
+                res.second = fixed_y;
+            }
+            Point* fixed_x = new Point(X.x, a.shift);
+            res.first = fixed_x;
+        }
+    }
+    else{
+        Point* fixed_x = new Point(X.x, y_coord(a, X));
+        Point* fixed_y = new Point(x_coord(a, X), X.y);
+        res.first = fixed_x;
+        res.second = fixed_y;
+    }
+    return res;
+}
+
+Line normal_projection_Line(Line l, Point A){
+    if (l.oy){
+        Point A1(l.shift, A.y);
+        Line AA1(A, A1);
+        return AA1;
+    }
+    long double k = l.tg;
+    Line res;
+    if (are_equal(k, 0)){
+        if (l.oy){
+            res = Line(0, A.y, false);
+        }
+        else{
+            res = Line(0, A.x, true);
+        }
+    }
+    else{
+        long double b1 = A.y + (1.0 / k) * A.x;
+        res = Line((-1.0 / k), b1, false);
+    }
+    return res;
+}
+
+Point normal_projection_Point(Line l, Point A){
+    if (l.oy){
+        Point A1(l.shift, A.y);
+        return A1;
+    }
+    Line n = normal_projection_Line(l, A);
+    Point* ptr = intersection(l, n);
+    Point res = *ptr;
+    delete ptr;
+    return res;
+}
+
+std::vector<std::vector <Point>> relative(Line a, std::vector <Point> &array){
+    std::vector <Point> BASE;
+    std::vector <std::vector <Point>> res (3, BASE);
+    for (size_t i = 0; i < array.size(); ++i){
+        std::pair <Point*, Point*> projections = projections_on_the_Line(a, array[i]);
+        if (projections.first == projections.second){
+            res[1].push_back(array[i]);
+        }
+        else {
+            if (projections.first == nullptr){
+                if (array[i].x < a.shift){
+                    res[0].push_back(array[i]);
+                }
+                else if (are_equal(array[i].x, a.shift)){
+                    res[1].push_back(array[i]);
+                }
+                else{
+                    res[2].push_back(array[i]);
+                }
+            }
+            else if (projections.second == nullptr){
+                if (array[i].y < a.shift){
+                    res[0].push_back(array[i]);
+                }
+                else if (are_equal(array[i].y, a.shift)){
+                    res[1].push_back(array[i]);
+                }
+                else{
+                    res[2].push_back(array[i]);
+                }
+            }
+            else{
+                if (projections.first == projections.second){
+                    res[1].push_back(array[i]);
+                }
+                else if (array[i].y < projections.first->y){
+                    res[0].push_back(array[i]);
+                }
+                else{
+                    res[2].push_back(array[i]);
+                }
+            }
+        }
+        delete projections.first;
+        delete projections.second;
+    }
+    return res;
+}
+
+
+
+class Shape{
+public:
+    virtual long double perimeter() = 0;
+    virtual long double  area() = 0;
+    virtual bool operator ==(const Shape &another) const = 0;
+    virtual bool operator !=(const Shape &another) const = 0;
+    virtual bool isCongruentTo(const Shape& another) = 0;
+    virtual bool isSimilarTo(const Shape& another) = 0;
+    virtual bool containsPoint(Point point) = 0;
+    virtual void rotate(Point center, long  double angle) = 0;
+    virtual void reflex(Point center) = 0;
+    virtual void reflex(Line axis) = 0;
+    virtual void scale(Point center, long double coefficient) = 0;
+    virtual ~Shape() {}
+};
+
+class Polygon: public Shape {
+protected:
+    std::vector <Point> points = {};
+public:
+    Polygon();
+    Polygon(std::vector <Point> &massiv);
+    Polygon(std::initializer_list<Point> array);
+    long long int verticesCount();
+    const std::vector <Point>& getVertices();
+    const std::vector <Point>& getVertices() const;
+    bool isConvex();
+    long double perimeter() override;
+    long double area() override;
+    bool operator ==(const Shape &another) const override;
+    bool operator !=(const Shape &another) const override;
+    Polygon& operator = (const Polygon& another);
+    bool isCongruentTo(const Shape& another) override;
+    bool isSimilarTo(const Shape& another) override;
+    bool containsPoint(Point point);
+    void rotate(Point center, long double angle) override;
+    void reflex(Point center) override;
+    void reflex(Line axis) override;
+    void scale(Point center, long double coefficient) override;
+    void update_points(std::vector <Point> array);
+};
+
+size_t correct(size_t i, const std::vector <Point> &array){
+    return i % array.size();
+}
+
+bool isConvex_first(std::vector <Point> &array) {
+    bool last = true;
+    bool res = true;
+    for (size_t i = 0; i < array.size(); ++i){
+        Vector a(array[i], array[ (i + 1) % array.size()]);
+        Vector b(array[(i + 1) % array.size()], array[(i + 2) % array.size()]);
+        if (i == 0){
+            last = (sin_angle(a, b) > 0);
+        }
+        else{
+            bool current = (sin_angle(a, b) > 0);
+            if (last != current){
+                res = false;
+                break;
+            }
+        }
+    }
+    return res;
+}
+
+
+class Special_List{
+public:
+    long double P = 0;
+    long double S = 0;
+    bool convex = true;
+    std::vector <Point> points = {};
+    std::vector <long double> distances = {};
+    std::vector <std::pair<long double, long double>> angles = {};
+    std::vector <Point> extreme_points = {};
+
+    Special_List();
+    Special_List(long double P1, long double S1, bool convex1, const std::vector <long double> &distances1, const std::vector <std::pair<long double, long double>> angles1, const std::vector <Point> &extreme_points1);
+
+    ~Special_List() = default;
+};
+
+Special_List::Special_List(): P(0), S(0), convex(true), points({}), distances({}), angles({}), extreme_points({}) {}
+
+Special_List::Special_List(long double P1, long double S1, bool convex1, const std::vector <long double> &distances1, const std::vector <std::pair<long double, long double>> angles1, const std::vector <Point> &extreme_points1): P(P1), S(S1), convex(convex1), distances(distances1), angles(angles1), extreme_points(extreme_points1) {}
+
+long double value_of_integral_Line_function(long double k, long double b, long double x){
+    return ((k * sqr(x)) / 2) + (b * x);
+}
+
+long double area_under_Line(Line a, long double x1, long double x2){
+    long double k = a.tg;
+    long double b = a.shift;
+    return value_of_integral_Line_function(k, b, x2) - value_of_integral_Line_function(k, b, x1);
+}
+
+long double trap_area(Point a, Point b1){
+    Line l(a, b1);
+    if (l.oy){
+        return 0;
+    }
+    long double x1 = a.x;
+    long double x2 = b1.x;
+    long double res = area_under_Line(l, x1, x2);
+    return res;
+}
+
+long double area_first(std::vector <Point> &array){
+    long double res = 0;
+    for (size_t i = 0; i < array.size(); ++i){
+        res += trap_area(array[i], array[(i + 1) % array.size()]);
+    }
+    if (res < 0){
+        res *= -1;
+    }
+    return res;
+}
+
+
+Special_List Building_Cycle(std::vector<Point> &array) {
+    long double res_perimeter = 0;
+    long double res_area = 0;
+    bool res_convex = true;
+    bool last = true;
+    std::vector <long double> res_distances = {};
+    std::vector <std::pair<long double, long double>> res_angles = {};
+    std::vector <Point> res_extreme_points(4, array[0]);
+    long double max_x = array[0].x;
+    long double min_x = array[0].x;
+    long double max_y = array[0].y;
+    long double min_y = array[0].y;
+    for (size_t i = 0; i < array.size(); ++i){
+        long double dist = distance12(array[i], array[(i + 1) % array.size()]);
+        res_perimeter += dist;
+        res_distances.push_back(dist);
+        res_area += trap_area(array[i], array[(i + 1) % array.size()]);
+        Vector a(array[i], array[(i + 1) % array.size()]);
+        Vector b(array[(i + 1) % array.size()], array[(i + 2) % array.size()]);
+        long double angle_cos = cos_angle(a, b);
+        long double angle_sin = sin_angle(a, b);
+        std::pair <long double, long double> tmp_pair;
+        tmp_pair.first = angle_cos;
+        tmp_pair.second = angle_sin;
+        res_angles.push_back(tmp_pair);
+        if (i == 0){
+            last = (sin_angle(a, b) > 0); // !!!!
+        }
+        else{
+            bool current = (sin_angle(a, b) > 0);
+            if (res_convex) {
+                if (last != current) {
+                    res_convex = false;
+                }
+            }
+        }
+        if (array[i].y > max_y){
+            max_y = array[i].y;
+            res_extreme_points[0] = array[i];
+        }
+        if (array[i].x > max_x){
+            max_x = array[i].x;
+            res_extreme_points[1] = array[i];
+        }
+        if (array[i].y < min_y){
+            min_y = array[i].y;
+            res_extreme_points[2] = array[i];
+        }
+        if (array[i].x < min_x){
+            min_x = array[i].x;
+            res_extreme_points[3] = array[i];
+        }
+    }
+    if (res_area < 0){
+        res_area *= -1;
+    }
+    Special_List res(res_perimeter, res_area, res_convex, res_distances, res_angles, res_extreme_points);
+    return res;
+}
+
+
+
+
+void Polygon_building(long double &P, long double &S, bool &CNVX, std::vector <Point> &array, std::vector <long double> &distances, std::vector <std::pair<long double, long double>> &angles, std::vector <Point> &extreme_points){
+    Special_List parameters = Building_Cycle(array);
+    P = parameters.P;
+    S = parameters.S;
+    CNVX = parameters.convex;
+    distances = parameters.distances;
+    angles = parameters.angles;
+    extreme_points = parameters.extreme_points;
+}
+
+Polygon::Polygon(): points({}) {}
+
+Polygon::Polygon (std::vector <Point> &massiv): points(massiv) {
+    //std::cerr << "Polygon cumstructor from massiv " << massiv.size() << '\n';
+}
+
+
+Polygon::Polygon(std::initializer_list<Point> array1): points(array1) {
+    //std::cerr << "Polygon constructor from initiazer_list " << array1.size() << '\n';
+}
+
+long long int Polygon::verticesCount() {
+    return points.size();
+}
+
+const std::vector <Point>& Polygon::getVertices() {
+    return points;
+}
+
+const std::vector <Point>& Polygon::getVertices() const {
+    return points;
+}
+
+bool isConvex_first2(std::vector <Point> &array) {
+    bool flag = true;
+    for (size_t i = 0; i < array.size(); ++i){
+        Line a(array[i], array[(i + 1) % array.size()]);
+        std::vector<std::vector<Point>> relatives = relative(a, array);
+        if (relatives[0].empty() || relatives[2].empty()){
+            continue;
+        }
+        else{
+            flag = false;
+            break;
+        }
+    }
+    return flag;
+}
+
+bool Polygon::isConvex() {
+    bool res_convex = true;
+    bool last = true;
+    for (size_t i = 0; i < points.size(); ++i){
+        Vector a(points[i], points[(i + 1) % points.size()]);
+        Vector b(points[(i + 1) % points.size()], points[(i + 2) % points.size()]);
+        if (i == 0){
+            last = (sin_angle(a, b) > 0); // !!!!
+        }
+        else{
+            bool current = (sin_angle(a, b) > 0);
+            if (res_convex) {
+                if (last != current) {
+                    res_convex = false;
+                }
+            }
+        }
+    }
+    return res_convex;
+}
+
+long double Polygon::perimeter(){
+    long double res_perimeter = 0;
+    for (size_t i = 0; i < points.size(); ++i){
+        long double dist = distance12(points[i], points[(i + 1) % points.size()]);
+        res_perimeter += dist;
+    }
+    return res_perimeter;
+}
+
+long double Polygon::area(){
+    long double res_area = 0;
+    for (size_t i = 0; i < points.size(); ++i){
+        res_area += trap_area(points[i], points[(i + 1) % points.size()]);
+    }
+    if (res_area < 0){
+        res_area *= -1;
+    }
+    return res_area;
+}
+
+size_t correct_for_are_equal(long long int start, size_t i, size_t m){
+    long double res =  (m + ((start - (long long int)i) % (long long int)m)) % m;
+    return res;
+}
+
+
+bool are_equal(const std::vector <Point> &a, const std::vector <Point> &b){ //const for operator ==
+    if (a.size() == b.size()){
+        if (a.empty()){
+            return true;
+        }
+        else{
+            long long int start = -1;
+            for (size_t i = 0; i < a.size(); ++i){
+                if (a[0] == b[i]){
+                    start = (long long int)i;
+                    break;
+                }
+            }
+            if (start == -1){
+                return false;
+            }
+            else{
+                if (a[1] != b[(start + 1) % a.size()]){
+                    for (size_t i = 0; i < a.size(); ++i) {
+                        if (a[i] != b[correct_for_are_equal(start, i, a.size())]) {
+                            return false;
+                        }
+                    }
+                }
+                else {
+                    for (size_t i = 0; i < a.size(); ++i) {
+                        if (a[i] != b[(i + (size_t)start) % a.size()]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        }
+    }
+    else{
+        return false;
+    }
+}
+
+
+bool are_equal(const std::vector <long double> &a, const std::vector <long double> &b){ //const for operator ==
+    if (a.size() == b.size()){
+        if (a.empty()){
+            return true;
+        }
+        else{
+            long long int start = -1;
+            for (size_t i = 0; i < a.size(); ++i){
+                if (are_equal(a[0], b[i])){
+                    start = (long long int)i;
+                    break;
+                }
+            }
+            if (start == -1){
+                return false;
+            }
+            else{
+                if (a[1] != b[(start + 1) % a.size()]){
+                    for (size_t i = 0; i < a.size(); ++i) {
+                        if (!are_equal(a[i], b[correct_for_are_equal(start, i, a.size())])) {
+                            return false;
+                        }
+                    }
+                }
+                else {
+                    for (size_t i = 0; i < a.size(); ++i) {
+                        if (!are_equal(a[i] , b[(i + (size_t)start) % a.size()])) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        }
+    }
+    else{
+        return false;
+    }
+}
+
+bool equal_angles(std::pair<long double, long double> a, std::pair<long double, long double> b){
+    return (are_equal(a.first , b.first) && are_equal(fabs(a.second), fabs(b.second)));
+}
+
+std::vector <std::pair<long double, long double>> angles(const std::vector<Point> &array){
+    std::vector <std::pair<long double, long double>> res_angles = {};
+    for (size_t i = 0; i < array.size(); ++i){
+        Point A = array[i];
+        Point B = array[(i + 1) % array.size()];
+        Vector a(array[i], array[(i + 1) % array.size()]);
+        Vector b(array[(i + 1) % array.size()], array[(i + 2) % array.size()]);
+        long double angle_cos = cos_angle(a, b);
+        long double angle_sin = sin_angle(a, b);
+        std::pair <long double, long double> tmp_pair;
+        tmp_pair.first = angle_cos;
+        tmp_pair.second = angle_sin;
+        res_angles.push_back(tmp_pair);
+    }
+    return res_angles;
+}
+
+bool are_equal_angles(std::vector <Point> &a1, std::vector <Point> &b11){ //const for operator ==
+    std::vector <std::pair<long double, long double>> a = angles(a1);
+    std::vector <std::pair<long double, long double>> b1 = angles(b11);
+    if (a.size() == b1.size()){
+        if (a.empty()){
+            return true;
+        }
+        else{
+            long long int start = -1;
+            for (size_t i = 0; i < a.size(); ++i){
+                if (b1[i] == a[0]){
+                    start = (long long int)i;
+                    break;
+                }
+            }
+            std::vector <std::pair<long double, long double>> b;
+            bool flag = true;
+            if (start == -1){
+                flag = false;
+            }
+            if (!flag){
+                for (size_t i = 0; i < a.size(); ++i){
+                    b1[i].second *= -1;
+                }
+                for (size_t i = 0; i < a.size(); ++i){
+                    if (b1[i] == a[0]){
+                        start = (long long int)i;
+                        break;
+                    }
+                }
+                if (start == -1){
+                    return false;
+                }
+                else{
+                    flag = true;
+                }
+            }
+            if (flag){
+                b  = b1;
+                if (a[1] != b[(start + 1) % a.size()]){
+                    for (size_t i = 0; i < a.size(); ++i) {
+                        if (a[i] != b[correct_for_are_equal(start, i, a.size())]) {
+                            return false;
+                        }
+                    }
+                }
+                else {
+                    for (size_t i = 0; i < a.size(); ++i) {
+                        if (a[i] != b[(i + (size_t)start) % a.size()]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+    }
+    else{
+        return false;
+    }
+
+}
+
+bool Polygon::operator ==(const Shape &another) const {
+    const Polygon *ptr;
+    try {
+        ptr = dynamic_cast<const Polygon *>(&another);
+        if (ptr == nullptr) {
+            throw 1;
+
+        }
+    } catch (...) {
+        return false;
+    }
+    return are_equal(points, (*ptr).points);
+}
+
+bool Polygon::operator !=(const Shape &another) const {
+    return !(*this == another);
+}
+
+Polygon& Polygon::operator =(const Polygon& another) {
+    points = another.points;
+    return *this;
+}
+
+std::vector <long double> distances(const std::vector <Point>& array){
+    std::vector <long double> res_distances = {};
+    for (size_t i = 0; i < array.size(); ++i){
+        Point A = array[i];
+        Point B = array[(i + 1) % array.size()];
+        long double dist = distance12(A, B);
+        res_distances.push_back(dist);
+    }
+    return res_distances;
+}
+
+bool Polygon::isCongruentTo(const Shape &another) {
+    const Polygon* ptr;
+    try{
+        ptr = dynamic_cast<const Polygon*>(&another);
+        if (ptr == nullptr){
+            throw 1;
+        }
+    } catch (...) {
+        return false;
+    }
+    if (points.size() == (*ptr).points.size()){
+        return (are_equal(distances((*this).points), distances((*ptr).points)));
+    }
+    else{
+        return false;
+    }
+}
+
+
+bool Polygon::isSimilarTo(const Shape &another) {
+    const Polygon* ptr;
+    try{
+        ptr = dynamic_cast<const Polygon*>(&another);
+        if (ptr == nullptr){
+            throw 1;
+        }
+    } catch (...) {
+        return false;
+    }
+    if (points.size() == (*ptr).points.size()){
+        Polygon Q = *ptr;
+        Q.scale(null_Point, (*this).perimeter() / Q.perimeter());
+        return (*this).isCongruentTo(Q);
+    }
+    else{
+        return false;
+    }
+}
+
+bool containsPoint_for_convex(const Polygon &p, Point Q){
+    if (p.getVertices()[0] == Q){
+        return true;
+    }
+    else{
+        Point A = p.getVertices()[0];
+        Vector AQ(A, Q);
+        size_t left = 1;
+        size_t right = p.getVertices().size() - 1;
+        while (right - left > 1){
+            Point L(p.getVertices()[left]);
+            Point R(p.getVertices()[right]);
+            size_t middle = (left + right) / 2;
+            Point M(p.getVertices()[middle]);
+            Vector AL(A, L);
+            Vector AR(A, R);
+            Vector AM(A, M);
+            if (is_positive_pair(AM, AQ)){ // !!!
+                left = middle;
+            }
+            else{
+                right = middle;
+            }
+        }
+        Point L(p.getVertices()[left]);
+        Point R(p.getVertices()[right]);
+        Vector AL(A, L);
+        Vector AR(A, R);
+        Vector LQ(L, Q);
+        Vector LR(L, R);
+        return true;
+    }
+}
+
+bool Line::containsPoint(Point p){
+    std::cerr << "containsPoint " << p.x << " " << p.y << '\n';
+    long double k = tg;
+    long double b = shift;
+    if (oy){
+        return are_equal(p.x, b);
+    }
+    else{
+        return are_equal(k * p.x + b , p.y);
+    }
+}
+
+bool containsPoint_for_nonconvex(const Polygon &p, Point Q){
+    size_t count = 0;
+    for (size_t i = 0; i < p.getVertices().size(); ++i){
+        Point A(p.getVertices()[i]);
+        Point B(p.getVertices()[(i + 1) % p.getVertices().size()]);
+        Line l(A, B);
+        if (l.containsPoint(Q)){
+            return true;
+        }
+        else {
+            if (are_equal(A.y , B.y)){
+                continue;
+            }
+            else if (are_equal(Q.y , std::max(A.y, B.y)) && Q.x < std::min(A.x, B.x)){
+                ++count;
+            }
+            else if (are_equal(Q.y, std::min(A.y, B.y))){
+                continue;
+            }
+            else if (std::min(A.y, B.y) < Q.y && Q.y < std::max(A.y, B.y)){
+                Vector AB(A, B);
+                Vector AQ(A, Q);
+                ++count;
+            }
+            else{
+                continue;
+            }
+        }
+    }
+    return (count  % 2 == 1);
+}
+
+std::pair<long double, long double> tg_angle(Point A, Point Q, Point B){
+    Vector QA(Q, A);
+    Vector QB(Q, B);
+    long double res1 = QA / QB;
+    long double res2 = QA * QB;
+    std::pair <long double, long double> res;
+    res.first = res1;
+    res.second = res2;
+    return res;
+}
+
+std::vector <Point> extreme_points(const std::vector <Point> &array){
+    std::vector <Point> res_extreme_points(4, array[0]);
+    long double max_x = array[0].x;
+    long double min_x = array[0].x;
+    long double max_y = array[0].y;
+    long double min_y = array[0].y;
+    for (size_t i = 0; i < array.size(); ++i) {
+        Vector a(array[i], array[(i + 1) % array.size()]);
+        Vector b(array[(i + 1) % array.size()], array[(i + 2) % array.size()]);
+        if (array[i].y > max_y) {
+            max_y = array[i].y;
+            res_extreme_points[0] = array[i];
+        }
+        if (array[i].x > max_x) {
+            max_x = array[i].x;
+            res_extreme_points[1] = array[i];
+        }
+        if (array[i].y < min_y) {
+            min_y = array[i].y;
+            res_extreme_points[2] = array[i];
+        }
+        if (array[i].x < min_x) {
+            min_x = array[i].x;
+            res_extreme_points[3] = array[i];
+        }
+    }
+    return res_extreme_points;
+}
+
+bool Polygon::containsPoint(Point point) {
+    std::cerr << "containsPoint " << point.x << " " << point.y << " " << points.size() << '\n';
+    if (points.size() == 3){
+        for (size_t i = 0; i < 3; ++i){
+            std::cerr << points[i].x << " " << points[i].y << '\n';
+        }
+    }
+    long double x0 = point.x;
+    long double y0 = point.y;
+    Point Q(point);
+    std::vector <Point> EP = extreme_points(points);
+    long double max_y = EP[0].y;
+    long double max_x = EP[1].x;
+    long double min_y = EP[2].y;
+    long double min_x = EP[3].x;
+    if (x0 > max_x || x0 < min_x || y0 > max_y || y0 < min_y){
+        return false;
+    }
+    else{
+        long double sum = 0;
+        for (size_t i = 0; i < points.size(); ++i){
+            Point A(points[i]);
+            Point B(points[(i + 1) % points.size()]);
+            sum += atan2(tg_angle(A, Q, B).first, tg_angle(A, Q, B).second);
+        }
+        if (fabs(sum) > (M_PI / 2)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+}
+
+long double from_degree_to_rad(long double angle){
+    return ((angle / 180.0) * M_PI);
+}
+
+void Polygon::rotate(Point center, long double angle1) {
+    long double angle = from_degree_to_rad(angle1);
+    for (size_t i = 0; i < points.size(); ++i){
+        long double x = points[i].x - center.x;
+        long double y = points[i].y - center.y;
+        long double new_x = x * cos(angle) - y * sin(angle) + center.x;
+        long double new_y = x * sin(angle) + y * cos(angle) + center.y;
+        Point new_point(new_x, new_y);
+        points[i] = new_point;
+    }
+}
+
+void Polygon::reflex(Point center){
+    std::vector <Point> new_points;
+    Point O(0, 0);
+    Vector OP(O, center);
+    for (size_t i = 0; i < points.size(); ++i){
+        Point A(points[i]);
+        Vector PA(center, A);
+        Vector OA1 = OP - PA;
+        Point A1(OA1);
+        points[i] = A1;
+    }
+}
+
+void Polygon::reflex(Line axis){
+    std::vector <Point> new_points;
+    Point O(0, 0);
+    long double k = axis.tg;
+    long double b = axis.shift;
+    for (size_t i = 0; i < points.size(); ++i){
+        Point A(points[i]);
+        long double x = A.x;
+        long double y = A.y;
+        if (k != 0) {
+            long double k1 = (-1.0) / k;
+            long double b1 = y - k1 * x;
+            Line norm(k1, b1, false);
+            Point *ptr = intersection(axis, norm);
+            Point I = *ptr;
+            Vector IA(I, A);
+            Vector OI(O, I);
+            Vector OA1 = OI - IA;
+            Point A1(OA1);
+            points[i] = A1;
+            delete ptr;
+        }
+        else{
+            Point I;
+            if (axis.oy){
+                I = Point(b, y);
+            }
+            else{
+                I = Point(x, b);
+            }
+            Vector OI(O, I);
+            Vector IA(I, A);
+            Vector OA1 = OI - IA;
+            Point A1(OA1);
+            points[i] = A1;
+        }
+    }
+}
+
+void Polygon::scale(Point center, long double coefficient) {
+    std::vector <Point> new_points;
+    Point O(0, 0);
+    Point I(center);
+    Vector OI(O, I);
+    if (coefficient != 0) {
+        for (size_t i = 0; i < points.size(); ++i) {
+            Point A(points[i]);
+            Vector IA(I, A);
+            Vector OA1 = OI + coefficient * IA;
+            Point A1(OA1);
+            points[i] = A1;
+        }
+    }
+    else{
+        points = {I};
+    }
+}
+
+
+class Rectangle: public Polygon {
+public:
+    Rectangle(Point A, Point C, long double k);
+    Rectangle(const Polygon& another);
+    Rectangle& operator=(const Rectangle &another);
+    Point center();
+    std::pair<Line, Line> diagonals();
+};
+
+Rectangle::Rectangle(const Polygon& another): Polygon(another) {}
+
+Rectangle& Rectangle:: operator =(const Rectangle &another){
+    points = another.points;
+    return *this;
+}
+
+Rectangle::Rectangle(Point A, Point C, long double l) {
+    if (are_equal(l, 1)){
+        Point M = between(A, C, 1);
+        Point B(M.x - (A.y - M.y), M.y + (A.x - M.x));
+        Point D(M.x - (C.y - M.y), M.y + (C.x - M.x));
+        points = {A, B, C, D};
+    }
+    else {
+        Vector AC(A, C);
+        long double AB1 = (l * abs(AC)) / sqrt(sqr(l) + 1);
+        long double AB2 = (abs(AC)) / sqrt(sqr(l) + 1);
+        Vector AH;
+        if (AB1 <= AB2) {
+            AH = (sqr(l) / (1 + sqr(l))) * AC;
+
+        } else {
+            AH = (1 / (1 + sqr(l))) * AC;
+
+        }
+        long double BH_ = (l * abs(AC)) / (1 + sqr(l));
+        Vector left_norm(-AC.y, AC.x);
+        Vector HB(left_norm, BH_);
+        Vector AB = AH + HB;
+        Point B(A, AB);
+        Point D(C, -AB);
+        points = {A, B, C, D};
+    }
+}
+
+Point Rectangle::center() {
+    Point A(points[0]);
+    Point B(points[1]);
+    Point C(points[2]);
+    Point D(points[3]);
+    Line d1(A, C);
+    Line d2(B, D);
+    Point* ptr = intersection(d1, d2);
+    Point res = *ptr;
+    delete ptr;
+    return res;
+}
+
+std::pair <Line, Line> Rectangle::diagonals() {
+    std::pair <Line, Line> res;
+    Point A(points[0]);
+    Point B(points[1]);
+    Point C(points[2]);
+    Point D(points[3]);
+    res.first = Line(A, C);
+    res.second = Line(B, D);
+    return res;
+}
+
+class Circle;
+
+class Square: public Rectangle{
+public:
+    Square(Point A,  Point C);
+    Square(const Square &another);
+    Square& operator=(const Square &another);
+    Circle circumscribedCircle();
+    Point circumscribedCirclecenter();
+    Circle inscribedCircle();
+    Point inscribedCirclecenter();
+};
+
+Square::Square(Point A,  Point C): Rectangle(A, C, 1) {
+    //std::cerr << "square constructor " << A.x << " " << A.y << " " << C.x << " " << C.y << '\n';
+}
+
+Square::Square(const Square &another): Rectangle(another) {}
+
+Square& Square:: operator =(const Square &another){
+    std::cerr << "Square operator = " << '\n';
+    points = another.points;
+    return *this;
+}
+
+
+class Triangle: public Polygon{
+public:
+    Triangle(Point A, Point B, Point C);
+    Triangle (const Triangle &another);
+    Triangle& operator=(const Triangle &another);
+    Circle circumscribedCircle();
+    Circle inscribedCircle();
+    Point centroid();
+    Point orthocenter();
+    Point incenter();
+    Point circumscribedCirclecenter();
+    Line EulerLine();
+    Circle ninePointsCircle();
+};
+
+Triangle::Triangle (const Triangle &another): Polygon(another) {}
+
+Triangle::Triangle (Point A, Point B, Point C): Polygon({A, B, C}) {}
+
+Triangle& Triangle:: operator =(const Triangle &another){
+    std::cerr << "Triangle operator =" << '\n';
+    points = another.points;
+    return *this;
+}
+
+Point Triangle::centroid() {
+    Point A(points[0]);
+    Point B(points[1]);
+    Point C(points[2]);
+    long double x = (A.x + B.x + C.x) / 3;
+    long double y = (A.y + B.y + C.y) / 3;
+    Point O(x,y);
+    std::cerr << "centroid A B C O" << A.x << " " << A.y << " " << B.x << " " << B.y << " " << C.x << " " << C.y << " " << O.x << " " << O.y << '\n';
+    return O;
+}
+
+Point Triangle:: orthocenter() {
+    Point A(points[0]);
+    Point B(points[1]);
+    Point C(points[2]);
+    Line AB(A, B);
+    Line BC(B, C);
+    Line AC(A, C);
+    Line AA1 = normal_projection_Line(BC, A);
+    Line BB1 = normal_projection_Line(AC, B);
+    Point* res1 = intersection(AA1, BB1);
+    Point res = *res1;
+    delete res1;
+    std::cerr << "centroid A B C res" << A.x << " " << A.y << " " << B.x << " " << B.y << " " << C.x << " " << C.y << " " << res.x << " " << res.y << '\n';
+    return res;
+}
+
+Point Triangle::incenter() {
+    Point A(points[0]);
+    Point B(points[1]);
+    Point C(points[2]);
+    Vector AB(A, B);
+    Vector AC(A, C);
+    Vector BC(B, C);
+    AB = AB * (1 / abs(AB));
+    AC = AC * (1 / abs(AC));
+    BC = BC * (1 / abs(BC));
+    Vector AA1 = AB + AC;
+    Line AI(AA1, A);
+    Vector BB1 = BC - AB;
+    Line BI(BB1, B);
+    Point* ptr = intersection(AI, BI);
+    Point res = *ptr;
+    delete ptr;
+    std::cerr << "centroid A B C res" << A.x << " " << A.y << " " << B.x << " " << B.y << " " << C.x << " " << C.y << " " << res.x << " " << res.y << '\n';
+    return res;
+}
+
+std::vector <Point> size_centers(const Triangle &ABC){
+    Point A(ABC.getVertices()[0]);
+    Point B(ABC.getVertices()[1]);
+    Point C(ABC.getVertices()[2]);
+    Point C1 = Point((A.x + B.x) / 2, (A.y + B.y) / 2);
+    Point B1 = Point((A.x + C.x) / 2, (A.y + C.y) / 2);
+    Point A1 = Point((C.x + B.x) / 2, (C.y + B.y) / 2);
+    std::vector <Point> res = {A1, B1, C1};
+    std::cerr << "size_centers A B C A1 B1 C1 " << A.x << " " << A.y << " " << B.x << " " << B.y << " " << C.x << " " << C.y << " " << A1.x << " " << A1.y << " " << B1.x << " " << B1.y << " " << C1.x << " " << C1.y << '\n';
+    return res;
+}
+
+Vector normal_Vector(Line l){
+    Vector a(l);
+    Vector res(a.y, -a.x);
+    std::cerr << "normal_Vector Line res " << a.x << " " << a.y << " " << res.x << " " << res.y << '\n';
+    return res;
+}
+
+Line normal_Line(Line l, Point P){
+    Vector n = normal_Vector(l);
+    Line res(n, P);
+    std::cerr << "normal_Line Line Point res " << l.tg << " " << l.shift << " " << l.oy << " " << P.x << " " << P.y << " " << res.tg << " " << res.shift << " " << res.oy << '\n';
+    return res;
+}
+
+Point Triangle::circumscribedCirclecenter(){
+    Point A(points[0]);
+    Point B(points[1]);
+    Point C(points[2]);
+    Line AB(A, B);
+    Line BC(B, C);
+    std::vector <Point> centers = size_centers(*this);
+    Point A1 = centers[0];
+    Point C1 = centers[2];
+    Line c1 = normal_Line(AB, C1);
+    Line a1 = normal_Line(BC, A1);
+    Point* ptr = intersection(a1, c1);
+    Point res = *ptr;
+    delete ptr;
+    std::cerr << "circumscribedCirclecenter A B C res" << A.x << " " << A.y << " " << B.x << " " << B.y << " " << C.x << " " << C.y << " " << res.x << " " << res.y << '\n';
+    return res;
+}
+
+Line Triangle::EulerLine() {
+    Point O = (*this).orthocenter();
+    Point Q = (*this).circumscribedCirclecenter();
+    Line res(O, Q);
+    std::cerr << "EulerLine O Q res " <<  O.x << " " << O.y << " " << Q.x << " " << Q.y <<  " " << res.tg << " " << res.shift << " " << res.oy << '\n';
+    return res;
+}
+
+
+class Ellipse: public Shape {
+protected:
+    Point F1 = null_Point;
+    Point F2 = null_Point;
+    long double A = 0;
+    long double B = 0;
+    long double C = 0;
+    long double E = 0;
+public:
+    Ellipse();
+    Ellipse(Point A, Point B, long double sum_distances);
+    Ellipse(const Ellipse& another);
+    long double perimeter() override;
+    long double area() override;
+    bool operator ==(const Shape &another) const override;
+    bool operator !=(const Shape &another) const override;
+    Ellipse& operator = (const Ellipse& another);
+    bool isCongruentTo(const Shape& another) override;
+    bool isSimilarTo(const Shape& another) override;
+    bool containsPoint(Point point) override;
+    void rotate(Point center, long double angle) override;
+    void reflex(Point center) override;
+    void reflex(Line axis) override;
+    void scale(Point center, long double coefficient) override;
+    std::pair<Point,Point> focuses();
+    std::pair<Line, Line> directrices();
+    long double eccentricity();
+    Point center();
+    Point getF1();
+    Point getF2();
+    long double getA();
+    long double getB();
+    long double getC();
+    long double getE();
+    Point getF1() const ;
+    Point getF2() const;
+    long double getA() const;
+    long double getB() const;
+    long double getC() const;
+    long double getE() const;
+};
+
+Ellipse::Ellipse(): F1(null_Point), F2(null_Point), A(0), B(0), C(0), E(1/2) {}
+
+Ellipse::Ellipse(const Ellipse &another): F1(another.F1), F2(another.F2), A(another.A), B(another.B), C(another.C), E(another.E) {}
+
+Ellipse::Ellipse(Point A1, Point B1, long double sum_distances) { //from Points and long double
+    if (A1.x >= B1.x){
+        F1 = A1;
+        F2 = B1;
+    }
+    else{
+        F1 = B1;
+        F2 = A1;
+    }
+    A = sum_distances / 2;
+    C = distance12(F1, F2) / 2;
+    B = sqrt(sqr(A) - sqr(C));
+    E = C / A;
+    std::cerr << "Ellipse constructor from Points A1 B1 F1 F2 A B C E " << A1.x << " " << A1.y << " " << B1.x << " " << B1.y << " " << F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << '\n';
+}
+
+Point Ellipse::getF1() {
+    return F1;
+}
+
+Point Ellipse::getF2() {
+    return F2;
+}
+
+long double Ellipse::getA() {
+    return A;
+}
+
+long double Ellipse::getB() {
+    return B;
+}
+
+long double Ellipse::getC() {
+    return C;
+}
+
+long double Ellipse::getE() {
+    return E;
+}
+
+Point Ellipse::getF1() const {
+    return F1;
+}
+
+Point Ellipse::getF2() const  {
+    return F2;
+}
+
+long double Ellipse::getA() const {
+    return A;
+}
+
+long double Ellipse::getB() const  {
+    return B;
+}
+
+long double Ellipse::getC() const  {
+    return C;
+}
+
+long double Ellipse::getE() const  {
+    return E;
+}
+
+void print(const Ellipse& a){
+    print(a.getF1());
+    print(a.getF2());
+    std::cout << a.getA() << " " << a.getB() << " " << a.getC() << " " << a.getE() << '\n';
+}
+
+long double Ellipse::perimeter() {
+    long double res = M_PI * (A + B) * (1 + ((3 * sqr((A - B)/(A + B)))/(10 + sqrt(4 - 3 * sqr((A - B)/(A + B))))));
+    std::cerr << "Ellipse perimeter " << F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << " " << res << '\n';
+    return res;
+}
+
+long double Ellipse::area() {
+    long double res = M_PI * A * B;
+    std::cerr << "Ellipse area " << F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << " " << res << '\n';
+    return res;
+}
+
+bool are_equal(const Ellipse& a, const Ellipse& b){
+    std::cerr << "are_equal Ellipse Ellipse" << '\n';
+    return (a.getF1() == b.getF1() && a.getF2() == b.getF2() && are_equal(a.getA() , b.getA()));
+}
+
+bool Ellipse::operator ==(const Shape &another) const{
+    const Ellipse *ptr;
+    std::cerr << "Ellipse operator == Shape " << '\n';
+    try {
+        ptr = dynamic_cast<const Ellipse *>(&another);
+        if (ptr == nullptr){
+            throw 1;
+        }
+    } catch (...) {
+        return false;
+    }
+    return are_equal(*this, *ptr);
+}
+
+bool Ellipse::operator !=(const Shape &another) const {
+    std::cerr << "Ellipse operator != Shape " << '\n';
+    return !(*this == another);
+}
+
+Ellipse& Ellipse::operator =(const Ellipse &another) {
+    F1 = another.F1;
+    F2 = another.F2;
+    A = another.A;
+    B = another.B;
+    C = another.C;
+    E = another.E;
+    std::cerr << "Ellipse operator = Ellipse F1 F2 A B C E " << F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << '\n';
+    return *this;
+}
+
+bool are_congruent(const Ellipse& a, const Ellipse& b){
+    std::cerr << "Ellipse are_congruent " << '\n';
+    return (are_equal(a.getA() , b.getA()) && are_equal(a.getB() , b.getB()) && are_equal(a.getC() , b.getC()));
+}
+
+bool Ellipse::isCongruentTo(const Shape& another) {
+    const Ellipse *ptr;
+    std::cerr << "Ellipse isCongruentTo Shape " <<'\n';
+    try {
+        ptr = dynamic_cast<const Ellipse *>(&another);
+        if (ptr == nullptr){
+            throw 1;
+        }
+    } catch (...) {
+        return false;
+    }
+    return are_congruent(*this, *ptr);
+}
+
+bool are_similar(const Ellipse& a, const Ellipse &b){
+    std::cerr << "Ellipse Ellipse are_similar " << '\n';
+    return are_equal(a.getE(), b.getE());
+}
+
+bool Ellipse::isSimilarTo(const Shape &another) {
+    std::cerr << "Ellipse isSimilarTo Shape " << '\n';
+    const Ellipse *ptr;
+    try {
+        ptr = dynamic_cast<const Ellipse *>(&another);
+        if (ptr == nullptr){
+            throw 1;
+        }
+    } catch (...) {
+        return false;
+    }
+    return are_similar(*this, *ptr);
+}
+
+bool Ellipse::containsPoint(Point point) {
+    std::cerr << "Ellipse containsPoint F1 F2 A B C E point " <<  F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << " " << point.x << " " << point.y << '\n';
+    return (distance12(point, F1) + distance12(point, F2) <= 2 * A);
+}
+
+void Ellipse::rotate(Point center, long double angle1) {
+    long double angle = from_degree_to_rad(angle1);
+    long double x1 = F1.x - center.x;
+    long double y1 = F1.y - center.y;
+    long double new_x1 = x1 * cos(angle) - y1 * sin(angle) + center.x;
+    long double new_y1 = x1 * sin(angle) + y1 * cos(angle) + center.y;
+    Point new_F1(new_x1, new_y1);
+    long double x2 = F2.x - center.x;
+    long double y2= F2.y - center.y;
+    long double new_x2 = x2 * cos(angle) - y2 * sin(angle) + center.x;
+    long double new_y2 = x2 * sin(angle) + y2 * cos(angle) + center.y;
+    Point new_F2(new_x2, new_y2);
+    *this = Ellipse(new_F1, new_F2, 2 * A);
+    std::cerr << "Ellipse rotate Ellipse center angle1 angle " <<  F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << " " << center.x << " " << center.y << " " << angle1 << " " << angle << '\n';
+}
+
+void Ellipse::reflex(Point center) {
+    Point O(0, 0);
+    Point Q(center);
+    Vector OQ(O, Q);
+    Vector QF1(Q, F1);
+    Vector QF2(Q, F2);
+    Vector QF11 = OQ - QF1;
+    Vector QF21 = OQ - QF2;
+    Point new_F1(QF11);
+    Point new_F2(QF21);
+    *this = Ellipse(new_F1, new_F2, 2 * A);
+    std::cerr << "Ellipse reflex Point Ellipse center " <<  F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << " " << center.x << " " << center.y << '\n';
+}
+
+void Ellipse::reflex(Line axis){
+    Point O(0, 0);
+    Point P1 = normal_projection_Point(axis, F1);
+    Point P2 = normal_projection_Point(axis, F2);
+    Vector OP1(O, P1);
+    Vector OP2(O, P2);
+    Vector P1F1(P1, F1);
+    Vector P2F2(P2, F2);
+    Vector OF11 = OP1 - P1F1;
+    Vector OF21 = OP2 - P2F2;
+    Point F11(OF11);
+    Point F21(OF21);
+    *this = Ellipse(F11, F21, 2 * A);
+    std::cerr << "Ellipse reflex Line Ellipse Line " <<  F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << " " << axis.tg << " " << axis.shift << " " << axis.oy << '\n';
+}
+
+void Ellipse::scale(Point center, long double coefficient) {
+    Vector O(0, 0);
+    Point Q = center;
+    Vector OQ(O, Q);
+    Vector QF1(Q, F1);
+    Vector QF2(Q, F2);
+    Vector OF11 = OQ + coefficient * QF1;
+    Vector OF21 = OQ + coefficient * QF2;
+    Point F11(OF11);
+    Point F21(OF21);
+    *this = Ellipse(F11, F21, 2 * coefficient * A);
+    std::cerr << "Ellipse rotate " <<  F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << " " << center.x << " " << center.y << " " << coefficient << '\n';
+}
+
+std::pair<Point, Point> Ellipse::focuses() {
+    std::pair <Point, Point> res;
+    res.first = F1;
+    res.second = F2;
+    std::cerr << "Ellipse focuses " <<  F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << " " << res.first.x << " " << res.first.y << " " << res.second.x << " " << res.second.y << '\n';
+    return res;
+}
+
+std::pair <Point, Point> seg(Line l, Point A, long double delta){
+    long double delta_x;
+    long double delta_y;
+    if (l.oy){
+        delta_x = 0;
+        delta_y = delta;
+    }
+    else{
+        delta_x = delta / sqrt(sqr(l.tg) + 1);
+        delta_y = (l.tg * delta) / sqrt(sqr(l.tg) + 1);
+    }
+    std::pair <Point, Point> res;
+    res.first = Point(A.x + delta_x, A.y + delta_y);
+    res.second = Point(A.x - delta_x, A.y - delta_y);
+    std::cerr << "seg Line Point delta " << l.tg << " " << l.shift << " " << l.oy << " " << A.x << " " << A.y << " " << delta << '\n';
+    return res;
+}
+
+std::pair <Line, Line> Ellipse::directrices() {
+    Line F1F2(F1, F2);
+    long double delta = (A / E) - C;
+    std::pair <Point, Point> segs1 = seg(F1F2, F1, delta);
+    Point D1;
+    if ((*this).containsPoint(segs1.first)){
+        D1 = segs1.second;
+    }
+    else{
+        D1 = segs1.first;
+    }
+    std::pair <Point, Point> segs2 = seg(F1F2, F2, delta);
+    Point D2;
+    if ((*this).containsPoint(segs2.first)){
+        D2 = segs2.second;
+    }
+    else{
+        D2 = segs2.first;
+    }
+    Line res1 = normal_Line(F1F2, D1);
+    Line res2 = normal_Line(F1F2, D2);
+    std::pair <Line, Line> res;
+    res.first = res1;
+    res.second = res2;
+    std::cerr << "Ellipse directrices Ellipse res1 res2 " <<  F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << " " << res.first.tg << " " << res.first.shift << " " << res.first.oy << " " << res.second.tg << " " << res.second.shift << " " << res.second.oy << '\n';
+    return res;
+}
+
+long double Ellipse::eccentricity() {
+    std::cerr << "eccentricity " << F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << '\n';
+    return E;
+}
+
+Point Ellipse::center() {
+    long double x = (F1.x + F2.x) / 2;
+    long double y = (F1.y + F2.y) / 2;
+    Point res(x, y);
+    std::cerr << "center " << F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << " " << res.x << " " << res.y << '\n';
+    return res;
+}
+
+class Circle: public Ellipse {
+public:
+    Circle();
+    Circle(Point O, long double r);
+    long double radius();
+};
+
+Circle::Circle(): Ellipse(null_Point, null_Point, 2) {}
+
+Circle::Circle(Point O, long double r): Ellipse(O, O, 2 * r) {}
+
+void print(Circle a){
+    print(a.center());
+    print(a.radius());
+}
+
+long double Circle::radius() {
+    std::cerr << "radius " << F1.x << " " << F1.y << " " << F2.x << " " << F2.y << " " << A << " " << B << " " << C << " " << E << " " << A << '\n';
+    return A;
+}
+
+Circle Triangle::circumscribedCircle(){
+    Point O = (*this).circumscribedCirclecenter();
+    long double r = distance12(O, points[0]);
+    Circle res(O, r);
+    std::cerr << " Triangle circumscribedCircle " << '\n';
+    return res;
+}
+
+Circle Triangle::inscribedCircle() {
+    Point O = (*this).incenter();
+    long double p = (*this).perimeter() / 2;
+    Point A(points[0]);
+    Point B(points[1]);
+    Point C(points[2]);
+    long double AB = distance12(A, B);
+    long double BC = distance12(B, C);
+    long double AC = distance12(A, C);
+    long double r = sqrt((p - AB) * (p - BC) * (p - AC)/p);
+    Circle res(O, r);
+    std::cerr << " Triangle inscribedCircle " << '\n';
+    return res;
+}
+
+
+Circle Triangle::ninePointsCircle() {
+    Point A(points[0]);
+    Point B(points[1]);
+    Point C(points[2]);
+    Point A1 = between(B, C, 1);
+    Point B1 = between(A, C, 1);
+    Point C1 = between(A, B, 1);
+    Triangle A1B1C1(A1, B1, C1);
+    Circle res = A1B1C1.circumscribedCircle();
+    std::cerr << " Triangle ninePointsCircle " << '\n';
+    return res;
+}
+
+Circle Square::circumscribedCircle() {
+    Point A(points[0]);
+    Point B(points[1]);
+    Point C(points[2]);
+    Triangle ABC(A, B, C);
+    Circle res = ABC.circumscribedCircle();
+    std::cerr << "Square circumscribedCircle " << '\n';
+    return res;
+}
+Point Square::circumscribedCirclecenter() {
+    std::cerr << "Square circumscribedCirclecenter " << '\n';
+    return ((*this).circumscribedCircle().center());
+}
+
+Circle Square::inscribedCircle() {
+    Point O = circumscribedCirclecenter();
+    Point A(points[0]);
+    Point B(points[1]);
+    long double side = distance12(A, B);
+    Circle res(O,  side / 2);
+    std::cerr << "Square inscribedCircle " << '\n';
+    return res;
+}
+
+Point Square::inscribedCirclecenter() {
+    std::cerr << "Square inscribedCirclecenter " << '\n';
+    return ((*this).inscribedCircle().center());
+}
